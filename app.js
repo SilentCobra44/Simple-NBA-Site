@@ -1,4 +1,4 @@
-require('dotenv').config(); 
+//require('dotenv').config(); Render taken care of
 
 const express = require('express');
 const mongoose = require('mongoose');
