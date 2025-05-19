@@ -10,4 +10,4 @@ APIs: BallDontLie (https://www.balldontlie.io)
 
 Contact Email: ffynnwil@terpmail.umd.edu
 
-Deployed App Link:
+Deployed App Link: https://cmsc335finalproject-2xcc.onrender.com
