@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My NBA Favorites</title>
+  <link rel="stylesheet" type="text/css" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/players">Search Players</a></li>
+        <li><a href="/teams">Search Teams</a></li>
+      </ul>
+    </nav>
+    <h1><img src="/images/nba-logo-transparent.png" alt="NBA Logo" style="height: 30px; vertical-align: middle; margin-right: 10px;">My NBA Favorites</h1>
+
+    <div id="favoritesList" class="results">
+      <h2>Favorites</h2>
+      <ul id="favorites">
+        </ul>
+    </div>
+  </div>
+
+  <script>
+    const favoritesUl = document.getElementById('favorites');
+
+    async function loadFavorites() {
+        favoritesUl.innerHTML = ''; 
+        //fetch from GET /api/favorites route
+        const response = await fetch('/api/favorites'); 
+        const favorites = await response.json();
+
+        if (favorites.length > 0) {
+            favorites.forEach(fav => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                  <span>${fav.name} (${fav.type === 'player' ? 'Player' : 'Team'})</span>
+                  <button class="delete-favorite-button" data-id="${fav._id}">Delete</button>
+                `;
+                favoritesUl.appendChild(li);
+            });
+            attachDeleteListeners();
+        } else {
+            const li = document.createElement('li');
+            li.textContent = 'No favorites added yet. Go search for some!';
+            favoritesUl.appendChild(li);
+        }
+    }
+
+    function attachDeleteListeners() {
+      const deleteButtons = document.querySelectorAll('.delete-favorite-button');
+      console.log('Found delete buttons (Favorites Page):', deleteButtons.length);
+      deleteButtons.forEach(button => {
+        if (!button.dataset.listenerAttached) { 
+            button.addEventListener('click', async function() {
+                const favoriteId = this.dataset.id; // Get the MongoDB document ID
+                await deleteFavorite(favoriteId);
+            });
+            button.dataset.listenerAttached = 'true';
+        }
+      });
+    }
+
+    async function deleteFavorite(id) {
+      const response = await fetch(`/api/favorites/${id}`, {
+        method: 'DELETE', 
+      });
+      const result = await response.json();
+      if (result.success) {
+        alert('Favorite deleted successfully!');
+        loadFavorites(); 
+      } else {
+        alert(`Error deleting favorite: ${result.error}`);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadFavorites);
+  </script>
+</body>
+</html>

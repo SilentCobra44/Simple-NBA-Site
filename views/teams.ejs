@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NBA Team Search</title>
+  <link rel="stylesheet" type="text/css" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/players">Search Players</a></li>
+        <li><a href="/favorites">View Favorites</a></li>
+      </ul>
+    </nav>
+    <h1><img src="/images/nba-logo-transparent.png" alt="NBA Logo" style="height: 30px; vertical-align: middle; margin-right: 10px;">NBA Team Search</h1>
+
+    <form id="searchForm">
+      <div>
+        <label for="searchTerm">Enter Team Name:</label>
+        <input type="text" id="searchTerm" name="searchTerm" required>
+      </div>
+      <button type="submit">Search</button>
+    </form>
+
+    <div id="searchResults" class="results">
+      </div>
+  </div>
+
+  <script>
+    const searchForm = document.getElementById('searchForm');
+    const searchResultsDiv = document.getElementById('searchResults');
+
+    searchForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const searchTerm = document.getElementById('searchTerm').value.toLowerCase();
+
+      const response = await fetch(`/api/search?type=team&term=${searchTerm}`);
+      const data = await response.json();
+
+      // Clear previous results
+      searchResultsDiv.innerHTML = ''; 
+
+      if (data.error) {
+        searchResultsDiv.textContent = `Error: ${data.error}`;
+      } else if (data.length > 0) {
+        const filteredResults = data.filter(team =>
+          team.full_name.toLowerCase().includes(searchTerm) ||
+          team.name.toLowerCase().includes(searchTerm) ||
+          team.abbreviation.toLowerCase().includes(searchTerm)
+        );
+
+        if (filteredResults.length > 0) {
+            filteredResults.forEach(item => {
+              searchResultsDiv.innerHTML += `
+                <h3>${item.full_name} (${item.abbreviation})</h3>
+                <p>Conference: ${item.conference}</p>
+                <p>Division: ${item.division}</p>
+                <button class="favorite-button" data-id="${item.id}" data-type="team" data-name="${item.full_name}">Add to Favorites</button>
+                <hr>
+              `;
+            });
+            attachFavoriteListeners();
+        } else {
+            searchResultsDiv.textContent = 'No results found.';
+        }
+      } else {
+        searchResultsDiv.textContent = 'No results found.';
+      }
+    });
+
+    async function addToFavorites(id, type, name) {
+      const response = await fetch('/api/favorites', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id, type, name }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        alert(`${name} added to favorites! You can view it on the Favorites page.`);
+      } else {
+        alert(`Error adding ${name} to favorites: ${result.error}`);
+      }
+    }
+
+    function attachFavoriteListeners() {
+      const favoriteButtons = document.querySelectorAll('.favorite-button');
+      console.log('Found favorite buttons (Team Page):', favoriteButtons.length);
+      favoriteButtons.forEach(button => {
+        if (!button.dataset.listenerAttached) {
+            button.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const type = this.dataset.type;
+                const name = this.dataset.name;
+                addToFavorites(id, type, name);
+            });
+            button.dataset.listenerAttached = 'true';
+        }
+      });
+    }
+  </script>
+</body>
+</html>
