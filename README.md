@@ -4,4 +4,4 @@ YouTube Video Link: https://youtu.be/vF8a6pnE6gc
 
 APIs: BallDontLie (https://www.balldontlie.io)
 
-Deployed App Link: https://cmsc335finalproject-2xcc.onrender.com
+Deployed App Link: https://simple-nba-site.onrender.com
